@@ -52,17 +52,21 @@ try:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Detects objects of different sizes in the input image
-        faces = faceCascade.detectMultiScale(
+        faces, _, levelWeights = faceCascade.detectMultiScale3(
             gray,
             scaleFactor = 1.1,
             minNeighbors = 5,
-            minSize = (30, 30)
+            minSize = (30, 30),
+            outputRejectLevels = True
         )
-        #print(faces)
+        #print(len(faces), len(levelWeights))
 
         # Draw a rectangle around the faces
-        for (x, y, w, h) in faces:
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        for (face, levelWeight) in zip(faces, levelWeights):
+            cv2.rectangle(frame, (face[0], face[1]),
+              (face[0]+face[2], face[1]+face[3]), (0, 255, 0), 2)
+            cv2.putText(frame, 'weight: {:.3f}'.format(levelWeight[0]),
+              (face[0] + 10, face[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 1)
 
         # keep the detection history in the log
         if anterior != len(faces):
