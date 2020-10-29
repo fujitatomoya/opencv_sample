@@ -1,3 +1,4 @@
+import argparse
 import cv2
 import sys
 import os
@@ -7,9 +8,23 @@ import logging as log
 
 from time import sleep
 
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue < 0:
+        raise argparse.ArgumentTypeError("%s is an invalid, should be greater than equal zero" % value)
+    return ivalue
+
+# Optional Argument
+parser = argparse.ArgumentParser(description='Cascade Face Detector Options')
+parser.add_argument('--file-path', action="store", dest="file_path", type=str,
+    default='/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml',
+    help='specify trained data file path. (default: /usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml)')
+parser.add_argument('--device-id', action="store", dest="device_id", type=check_positive,
+    default=0, help='camera device number. (default: 0)')
+args_result = parser.parse_args()
+
 # Configuration setting
-haarcascade_frontalface_file_path = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(haarcascade_frontalface_file_path)
+faceCascade = cv2.CascadeClassifier(args_result.file_path)
 if faceCascade.empty():
     print('failed to open CascadeClassifier, exit')
     sys.exit(1)
@@ -17,7 +32,7 @@ log.basicConfig(filename='cascade_face_detector.log',level=log.INFO)
 
 # Open camera device and get object (default 0, if needed change the device number)
 # use `ls -ltrh /dev/video*` command to check the device number.
-video_capture = cv2.VideoCapture(0, cv2.CAP_V4L2)
+video_capture = cv2.VideoCapture(args_result.device_id, cv2.CAP_V4L2)
 
 # Check if camera is opened
 retry_open_camera = 0
@@ -32,7 +47,6 @@ while not video_capture.isOpened():
         sys.exit(1)
 else:
     pass
-
 
 env_val = os.getenv('QT_X11_NO_MITSHM')
 if env_val is None:
