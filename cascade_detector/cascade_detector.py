@@ -15,7 +15,7 @@ def check_positive(value):
     return ivalue
 
 # Optional Argument
-parser = argparse.ArgumentParser(description='Cascade Face Detector Options')
+parser = argparse.ArgumentParser(description='Cascade Detector Options')
 parser.add_argument('--file-path', action="store", dest="file_path", type=str,
     default='/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml',
     help='specify trained data file path. (default: /usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml)')
@@ -24,11 +24,11 @@ parser.add_argument('--device-id', action="store", dest="device_id", type=check_
 args_result = parser.parse_args()
 
 # Configuration setting
-faceCascade = cv2.CascadeClassifier(args_result.file_path)
-if faceCascade.empty():
+Cascade = cv2.CascadeClassifier(args_result.file_path)
+if Cascade.empty():
     print('failed to open CascadeClassifier, exit')
     sys.exit(1)
-log.basicConfig(filename='cascade_face_detector.log',level=log.INFO)
+log.basicConfig(filename='cascade_detector.log',level=log.INFO)
 
 # Open camera device and get object (default 0, if needed change the device number)
 # use `ls -ltrh /dev/video*` command to check the device number.
@@ -52,9 +52,9 @@ env_val = os.getenv('QT_X11_NO_MITSHM')
 if env_val is None:
     os.environ['QT_X11_NO_MITSHM'] = '1'
 
-# Start cascade face detection loop until key interuption
-anterior = 0 # this is used to keep the face detection log.
-print('start cascade face detection loop, stop with [Ctrl-C]')
+# Start cascade detection loop until key interuption
+anterior = 0 # this is used to keep the detection log.
+print('start cascade detection loop, stop with [Ctrl-C]')
 try:
     while True:
         # Capture frame-by-frame
@@ -66,26 +66,24 @@ try:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Detects objects of different sizes in the input image
-        faces, _, levelWeights = faceCascade.detectMultiScale3(
+        objs, _, levelWeights = Cascade.detectMultiScale3(
             gray,
             scaleFactor = 1.1,
             minNeighbors = 5,
             minSize = (30, 30),
             outputRejectLevels = True
         )
-        #print(len(faces), len(levelWeights))
 
-        # Draw a rectangle around the faces
-        for (face, levelWeight) in zip(faces, levelWeights):
-            cv2.rectangle(frame, (face[0], face[1]),
-              (face[0]+face[2], face[1]+face[3]), (0, 255, 0), 2)
+        for (obj, levelWeight) in zip(objs, levelWeights):
+            cv2.rectangle(frame, (obj[0], obj[1]),
+              (obj[0]+obj[2], obj[1]+obj[3]), (0, 255, 0), 2)
             cv2.putText(frame, 'weight: {:.3f}'.format(levelWeight[0]),
-              (face[0] + 10, face[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 1)
+              (obj[0] + 10, obj[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 1)
 
         # keep the detection history in the log
-        if anterior != len(faces):
-            anterior = len(faces)
-            log.info("faces: "+str(len(faces))+" at "+str(dt.datetime.now()))
+        if anterior != len(objs):
+            anterior = len(objs)
+            log.info("objs: "+str(len(objs))+" at "+str(dt.datetime.now()))
 
         # Display the resulting frame
         cv2.imshow('Video', frame)

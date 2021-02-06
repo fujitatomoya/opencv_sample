@@ -38,4 +38,4 @@ docker run -it --privileged --name ubuntu20_work -e DISPLAY=unix$DISPLAY -v /tmp
 
 ## Samples
 
-- [Cascade Face Detector](./cascade_face_detector/readme.md)
+- [Cascade Detector](./cascade_detector/readme.md)
